@@ -1,174 +1,163 @@
-# Blackjack – Boilerplate Project
-**Ingegneria e Sviluppo Software 1**  
-Java 21 · Maven Multi-Module · JavaFX  
+# 🃏 Applicazione Desktop Blackjack
+
+## Descrizione del Progetto
+
+Il presente progetto consiste nello sviluppo di una **applicazione desktop del gioco Blackjack**, destinata a un pubblico generico.
+
+L’applicazione è realizzata seguendo i principi dell’**Ingegneria del Software**, includendo:
+
+* analisi dei requisiti
+* progettazione architetturale
+* sviluppo iterativo e incrementale
+
+Il sistema consente all’utente di giocare contro un banco automatizzato, gestendo lo stato della partita e controllando l’accesso tramite un sistema di licenza.
 
 ---
 
-## Overview
+## Problema Affrontato
 
-This project is a minimal boilerplate for a multi-module Java application using:
+L’obiettivo è progettare e sviluppare un’applicazione completa in assenza di specifiche completamente definite.
 
-- Java 21  
-- Maven  
-- JavaFX  
-- Frontend / Backend separation
-- Fat JAR packaging  
+Questo comporta:
 
-The current implementation demonstrates:
-
-- A simple JavaFX UI  
-- A TextArea  
-- A button that saves the content of the TextArea to a file  
-- Proper separation between frontend and backend modules  
-
-This boilerplate serves as the starting point for the Blackjack course project.
+* analisi e definizione dei requisiti
+* identificazione delle ambiguità
+* formulazione di assunzioni progettuali
+* progettazione di una soluzione coerente
 
 ---
 
-## Project Structure
+## Obiettivi
 
-```
-blackjack/
-│
-├── pom.xml               (parent / aggregator)
-├── backend/              (business logic & services)
-└── frontend/             (JavaFX UI)
-```
+Gli obiettivi principali del progetto sono:
 
-### Backend Module
-
-Contains:
-- Application services
-- File persistence service (`FileService`)
-- Future Blackjack domain logic
-
-The backend does not contain UI code.
-
-### Frontend Module
-
-Contains:
-- JavaFX UI
-- FXML layout
-- Controllers
-
-The frontend depends on the backend as a Maven dependency.
+* Sviluppare la logica di gioco del Blackjack
+* Realizzare un’interfaccia grafica tramite **JavaFX**
+* Garantire la separazione tra **Frontend e Backend**
+* Integrare un sistema di **validazione della licenza sviluppato in C**
+* Implementare il **salvataggio e ripristino dello stato** senza l’uso di database relazionali
+* Applicare buone pratiche di ingegneria del software (modularità, UML, documentazione)
 
 ---
 
-## Requirements
+## Human Interface Guidelines (HIG)
 
-- Java 21  
-- Maven 3.9+  
+L’interfaccia grafica è progettata seguendo le:
 
-Verify installation:
+**Linee guida di Windows (Fluent Design System)**
+
+Principi adottati:
+
+* Layout pulito e minimalista
+* Utilizzo di controlli standard Windows (menu, pulsanti, finestre)
+* Gerarchia visiva chiara
+* Interazioni intuitive per l’utente
+
+---
+
+## Tecnologie Utilizzate
+
+* **Java (JDK 21)** – Logica applicativa
+* **JavaFX** – Interfaccia grafica
+* **C** – Modulo esterno per la validazione della licenza
+* **Maven** – Gestione del build e delle dipendenze
+* **Git / GitHub** – Versionamento del codice
+
+---
+
+## Architettura del Sistema
+
+Il sistema è strutturato in modo modulare:
+
+* **Frontend (JavaFX)**
+  Gestisce la presentazione e l’interazione con l’utente
+
+* **Backend (Java)**
+  Contiene la logica di gioco e le regole del dominio
+
+* **Modulo Licenza (C)**
+  Componente esterno per la verifica dell’autorizzazione all’utilizzo
+
+---
+
+## Funzionalità Principali
+
+* Giocare a Blackjack contro un banco automatizzato
+* Eseguire azioni di gioco (Hit, Stand, Split)
+* Gestire puntate e saldo
+* Salvare e caricare lo stato della partita
+* Verificare la licenza all’avvio dell’applicazione
+* Supporto per più lingue (opzionale)
+
+---
+
+## Membri del Gruppo
+
+* Davide Somazzi
+* Predrag Djordjevic
+
+---
+
+## Istruzioni per Build ed Esecuzione
+
+### Prerequisiti
+
+* Java JDK 21
+* Maven 3.9+
+
+### Build del progetto
 
 ```bash
-java -version
-mvn -version
+mvn clean install
 ```
 
----
-
-## Build the Project
-
-From the root directory:
+### Avvio dell’applicazione
 
 ```bash
-mvn clean package
-```
-
-This will:
-
-- Build the backend  
-- Build the frontend  
-- Produce a fat JAR inside:
-
-```
-frontend/target/frontend-1.0.0-SNAPSHOT-all.jar
+mvn javafx:run
 ```
 
 ---
 
-## Run the Application
+## Convenzioni di Commit
 
-### Option 1 – Run the Fat JAR
+Per garantire coerenza, tracciabilità e chiarezza nello sviluppo, il team adotta una convenzione standard per i messaggi di commit.
 
-```bash
-java -jar frontend/target/frontend-1.0.0-SNAPSHOT-all.jar
+### Formato del messaggio
+
+Ogni commit deve seguire il seguente formato:
+
+```text
+#<numero-issue> - <tipo>: <breve descrizione>
 ```
 
-### Option 2 – Run in Development Mode (Recommended)
+### Esempi
 
-```bash
-mvn -pl frontend javafx:run
+```text
+#1 - feat: creata struttura base progetto Maven
+#2 - feat: implementata logica base del mazzo di carte
+#3 - fix: corretto calcolo punteggio con asso
+#4 - refactor: separata logica frontend/backend
+#5 - docs: aggiornato README
 ```
-
-This ensures JavaFX modules are correctly loaded.
 
 ---
 
-## Running from IntelliJ IDEA
+### Tipologie di commit
 
-1. Open the root folder (`blackjack/`)
-2. Ensure Project SDK = Java 21
-3. Reload the Maven project
+I principali tipi utilizzati sono:
 
-To run the application:
-
-- Open the Maven tool window  
-- Execute:
-
-```
-frontend → Plugins → javafx → javafx:run
-```
-
-Avoid running `MainApp` directly unless JavaFX is properly configured.
+* `feat` → nuova funzionalità
+* `fix` → correzione di bug
+* `refactor` → modifica del codice senza cambiamenti funzionali
+* `docs` → modifiche alla documentazione
+* `style` → modifiche di formattazione (indentazione, naming, ecc.)
+* `test` → aggiunta o modifica di test
 
 ---
 
-## File Saving Example
+## Note
 
-The boilerplate includes a simple persistence example.
+Il progetto è sviluppato nell’ambito del corso:
 
-Backend service:
-
-```java
-public void saveUtf8(Path file, String content)
-```
-
-Frontend usage:
-
-```java
-fileService.saveUtf8(
-    Path.of("saved", "textarea.txt"),
-    textArea.getText()
-);
-```
-
-By default, the file will be created in:
-
-```
-saved/textarea.txt
-```
-
-(relative to the application working directory)
-
----
-
-## Educational Purpose
-
-This boilerplate is intentionally minimal and designed to:
-
-- Demonstrate proper separation of frontend and backend
-- Provide a working JavaFX + Maven structure
-- Offer a starting point for the Blackjack project
-- Serve as a base for adding:
-  - Game logic
-  - Serialization
-  - License validation in C
-  - Internationalization
-  - Unit testing
-
----
-
-Author: Edoardo Terzi
+**Ingegneria e Sviluppo Software 1 – Semestre Primaverile 2026**
