@@ -1,4 +1,4 @@
-# 🃏 Applicazione Desktop Blackjack
+# Applicazione Desktop Blackjack
 
 ## Descrizione del Progetto
 
