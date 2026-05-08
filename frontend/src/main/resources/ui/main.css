@@ -1,0 +1,65 @@
+.app-root {
+    -fx-background-color: #eef2f6;
+    -fx-font-family: "Segoe UI", Arial, sans-serif;
+}
+
+.title-bar {
+    -fx-background-color: linear-gradient(to bottom, #ffffff, #edf2f8);
+    -fx-border-color: #d7dee7;
+    -fx-border-width: 0 0 1 0;
+}
+
+.title-text {
+    -fx-font-size: 17px;
+    -fx-font-weight: 600;
+    -fx-text-fill: #233244;
+}
+
+.license-card {
+    -fx-background-color: rgba(255, 255, 255, 0.94);
+    -fx-background-radius: 10;
+    -fx-border-color: #d8e0ea;
+    -fx-border-radius: 10;
+    -fx-padding: 18;
+}
+
+.license-title {
+    -fx-font-size: 20px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #22384e;
+}
+
+.license-help,
+.stat-label {
+    -fx-text-fill: #4d667d;
+}
+
+.status-label {
+    -fx-background-color: rgba(255, 255, 255, 0.9);
+    -fx-border-color: #d8e0ea;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 10;
+}
+
+.license-status-info {
+    -fx-text-fill: #1c3147;
+}
+
+.license-status-error {
+    -fx-text-fill: #922b2b;
+}
+
+.license-status-success {
+    -fx-text-fill: #23653a;
+}
+
+.button {
+    -fx-background-color: #e9f1fb;
+    -fx-text-fill: #1f3a56;
+    -fx-font-weight: 600;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-border-color: #cad8e8;
+}
+
