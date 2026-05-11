@@ -1,5 +1,7 @@
 package ch.supsi.dti.backend.service;
 
+import ch.supsi.dti.backend.model.Card;
+import ch.supsi.dti.backend.model.Deck;
 import ch.supsi.dti.backend.model.GamePhase;
 
 public final class GameService {
@@ -10,6 +12,7 @@ public final class GameService {
     private String playerName = "";
     private int balance = INITIAL_BALANCE;
     private GamePhase phase = GamePhase.WAITING_BET;
+    private Deck deck = new Deck(1);
 
     public String playerName() {
         return playerName;
@@ -34,6 +37,18 @@ public final class GameService {
         return phase;
     }
 
+    public int remainingCards() {
+        return deck.remaining();
+    }
+
+    public Card drawCard() {
+        return deck.draw();
+    }
+
+    public void resetDeck(int deckCount) {
+        deck = new Deck(deckCount);
+    }
+
     public boolean isGameOver() {
         return phase == GamePhase.GAME_OVER;
     }
@@ -48,4 +63,3 @@ public final class GameService {
         phase = GamePhase.GAME_OVER;
     }
 }
-
