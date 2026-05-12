@@ -3,6 +3,7 @@ package ch.supsi.dti.backend.service;
 import ch.supsi.dti.backend.model.Card;
 import ch.supsi.dti.backend.model.Deck;
 import ch.supsi.dti.backend.model.GamePhase;
+import ch.supsi.dti.backend.model.Hand;
 
 public final class GameService {
 
@@ -13,6 +14,8 @@ public final class GameService {
     private int balance = INITIAL_BALANCE;
     private GamePhase phase = GamePhase.WAITING_BET;
     private Deck deck = new Deck(1);
+    private Hand playerHand = new Hand();
+    private Hand dealerHand = new Hand();
 
     public String playerName() {
         return playerName;
@@ -45,6 +48,30 @@ public final class GameService {
         return deck.draw();
     }
 
+    public Hand playerHand() {
+        return playerHand;
+    }
+
+    public Hand dealerHand() {
+        return dealerHand;
+    }
+
+    public int playerScore() {
+        return playerHand.score();
+    }
+
+    public int dealerScore() {
+        return dealerHand.score();
+    }
+
+    public void addCardToPlayer(Card card) {
+        playerHand.addCard(card);
+    }
+
+    public void addCardToDealer(Card card) {
+        dealerHand.addCard(card);
+    }
+
     public void resetDeck(int deckCount) {
         deck = new Deck(deckCount);
     }
@@ -56,6 +83,8 @@ public final class GameService {
     public void startNewGame() {
         balance = INITIAL_BALANCE;
         phase = GamePhase.WAITING_BET;
+        playerHand = new Hand();
+        dealerHand = new Hand();
     }
 
     public void markGameOver() {
