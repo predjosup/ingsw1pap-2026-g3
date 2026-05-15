@@ -72,6 +72,42 @@ public final class GameService {
         dealerHand.addCard(card);
     }
 
+    public boolean canPlay() {
+        return phase == GamePhase.PLAYER_TURN;
+    }
+
+    public void startRound() {
+        playerHand = new Hand();
+        dealerHand = new Hand();
+
+        playerHand.addCard(deck.draw());
+        dealerHand.addCard(deck.draw());
+        playerHand.addCard(deck.draw());
+        dealerHand.addCard(deck.draw());
+
+        phase = GamePhase.PLAYER_TURN;
+        if (playerHand.isBust()) {
+            phase = GamePhase.ROUND_ENDED;
+        }
+    }
+
+    public void hit() {
+        if (!canPlay()) {
+            return;
+        }
+        playerHand.addCard(deck.draw());
+        if (playerHand.isBust()) {
+            phase = GamePhase.ROUND_ENDED;
+        }
+    }
+
+    public void stand() {
+        if (!canPlay()) {
+            return;
+        }
+        phase = GamePhase.ROUND_ENDED;
+    }
+
     public void resetDeck(int deckCount) {
         deck = new Deck(deckCount);
     }
