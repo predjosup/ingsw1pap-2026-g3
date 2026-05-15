@@ -105,7 +105,18 @@ public final class GameService {
         if (!canPlay()) {
             return;
         }
+        playDealerTurn();
         phase = GamePhase.ROUND_ENDED;
+    }
+
+    public void playDealerTurn() {
+        while (dealerHand.score() < 17) {
+            dealerHand.addCard(deck.draw());
+        }
+    }
+
+    public boolean dealerBust() {
+        return dealerHand.isBust();
     }
 
     public void resetDeck(int deckCount) {
