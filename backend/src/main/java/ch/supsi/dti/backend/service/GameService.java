@@ -10,9 +10,11 @@ public final class GameService {
 
     private static final int INITIAL_BALANCE = 100;
     private static final int MIN_BET = 10;
+    private static final double BLACKJACK_PAYOUT = 1.5;
 
     private String playerName = "";
     private int balance = INITIAL_BALANCE;
+    private int currentBet;
     private GamePhase phase = GamePhase.WAITING_BET;
     private Deck deck = new Deck(1);
     private Hand playerHand = new Hand();
@@ -37,6 +39,10 @@ public final class GameService {
 
     public int minBet() {
         return MIN_BET;
+    }
+
+    public int currentBet() {
+        return currentBet;
     }
 
     public GamePhase phase() {
@@ -87,7 +93,50 @@ public final class GameService {
         return phase == GamePhase.PLAYER_TURN;
     }
 
+    public boolean canPlaceBet() {
+        return phase != GamePhase.PLAYER_TURN && !isGameOver();
+    }
+
+    public void addBet(int amount) {
+        if (!canPlaceBet()) {
+            status = "Bet is not available now.";
+            return;
+        }
+        if (amount <= 0) {
+            status = "Invalid amount.";
+            return;
+        }
+        if (currentBet + amount > balance) {
+            status = "Insufficient balance.";
+            return;
+        }
+        currentBet += amount;
+        status = "Table bet: " + currentBet;
+    }
+
+    public void clearBet() {
+        if (!canPlaceBet()) {
+            status = "Bet cannot be cleared now.";
+            return;
+        }
+        currentBet = 0;
+        status = "Bet cleared.";
+    }
+
     public void startRound() {
+        if (!canPlaceBet()) {
+            status = "Round already active.";
+            return;
+        }
+        if (currentBet < MIN_BET) {
+            status = "Minimum bet: " + MIN_BET;
+            return;
+        }
+        if (currentBet > balance) {
+            status = "Insufficient balance.";
+            return;
+        }
+
         playerHand = new Hand();
         dealerHand = new Hand();
         lastOutcome = null;
@@ -153,9 +202,31 @@ public final class GameService {
     }
 
     private void settleRound(RoundOutcome outcome, String status) {
+        if (outcome == RoundOutcome.PLAYER_BLACKJACK) {
+            balance += (int) Math.round(currentBet * BLACKJACK_PAYOUT);
+        } else if (outcome == RoundOutcome.PLAYER_WIN) {
+            balance += currentBet;
+        } else if (outcome == RoundOutcome.DEALER_WIN) {
+            balance -= currentBet;
+        }
+
+        if (balance < 0) {
+            balance = 0;
+        }
+
         this.lastOutcome = outcome;
-        this.status = status;
-        this.phase = GamePhase.ROUND_ENDED;
+        this.status = status + " Balance: " + balance;
+        currentBet = 0;
+
+        if (balance == 0) {
+            this.phase = GamePhase.GAME_OVER;
+            this.status = "Game over: balance exhausted.";
+        } else if (balance < MIN_BET) {
+            this.phase = GamePhase.GAME_OVER;
+            this.status = "Game over: balance below minimum bet.";
+        } else {
+            this.phase = GamePhase.ROUND_ENDED;
+        }
     }
 
     public void resetDeck(int deckCount) {
@@ -168,6 +239,7 @@ public final class GameService {
 
     public void startNewGame() {
         balance = INITIAL_BALANCE;
+        currentBet = 0;
         phase = GamePhase.WAITING_BET;
         playerHand = new Hand();
         dealerHand = new Hand();
@@ -177,6 +249,7 @@ public final class GameService {
 
     public void markGameOver() {
         balance = 0;
+        currentBet = 0;
         phase = GamePhase.GAME_OVER;
     }
 }
