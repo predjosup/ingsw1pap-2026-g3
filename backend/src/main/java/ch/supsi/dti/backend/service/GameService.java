@@ -4,6 +4,7 @@ import ch.supsi.dti.backend.model.Card;
 import ch.supsi.dti.backend.model.Deck;
 import ch.supsi.dti.backend.model.GamePhase;
 import ch.supsi.dti.backend.model.Hand;
+import ch.supsi.dti.backend.model.RoundOutcome;
 
 public final class GameService {
 
@@ -16,6 +17,8 @@ public final class GameService {
     private Deck deck = new Deck(1);
     private Hand playerHand = new Hand();
     private Hand dealerHand = new Hand();
+    private RoundOutcome lastOutcome;
+    private String status = "Set up a round.";
 
     public String playerName() {
         return playerName;
@@ -38,6 +41,14 @@ public final class GameService {
 
     public GamePhase phase() {
         return phase;
+    }
+
+    public RoundOutcome lastOutcome() {
+        return lastOutcome;
+    }
+
+    public String status() {
+        return status;
     }
 
     public int remainingCards() {
@@ -79,6 +90,7 @@ public final class GameService {
     public void startRound() {
         playerHand = new Hand();
         dealerHand = new Hand();
+        lastOutcome = null;
 
         playerHand.addCard(deck.draw());
         dealerHand.addCard(deck.draw());
@@ -86,8 +98,14 @@ public final class GameService {
         dealerHand.addCard(deck.draw());
 
         phase = GamePhase.PLAYER_TURN;
-        if (playerHand.isBust()) {
-            phase = GamePhase.ROUND_ENDED;
+        if (playerHand.isBlackjack() && dealerHand.isBlackjack()) {
+            settleRound(RoundOutcome.PUSH, "Blackjack for both. Push.");
+        } else if (playerHand.isBlackjack()) {
+            settleRound(RoundOutcome.PLAYER_BLACKJACK, "Player has natural blackjack.");
+        } else if (dealerHand.isBlackjack()) {
+            settleRound(RoundOutcome.DEALER_WIN, "Dealer has blackjack.");
+        } else {
+            status = "Player turn.";
         }
     }
 
@@ -97,7 +115,9 @@ public final class GameService {
         }
         playerHand.addCard(deck.draw());
         if (playerHand.isBust()) {
-            phase = GamePhase.ROUND_ENDED;
+            settleRound(RoundOutcome.DEALER_WIN, "Player busts.");
+        } else {
+            status = "Card drawn.";
         }
     }
 
@@ -106,7 +126,20 @@ public final class GameService {
             return;
         }
         playDealerTurn();
-        phase = GamePhase.ROUND_ENDED;
+        if (dealerHand.isBust()) {
+            settleRound(RoundOutcome.PLAYER_WIN, "Dealer busts.");
+            return;
+        }
+
+        int player = playerHand.score();
+        int dealer = dealerHand.score();
+        if (player > dealer) {
+            settleRound(RoundOutcome.PLAYER_WIN, "Player wins.");
+        } else if (player < dealer) {
+            settleRound(RoundOutcome.DEALER_WIN, "Dealer wins.");
+        } else {
+            settleRound(RoundOutcome.PUSH, "Push.");
+        }
     }
 
     public void playDealerTurn() {
@@ -117,6 +150,12 @@ public final class GameService {
 
     public boolean dealerBust() {
         return dealerHand.isBust();
+    }
+
+    private void settleRound(RoundOutcome outcome, String status) {
+        this.lastOutcome = outcome;
+        this.status = status;
+        this.phase = GamePhase.ROUND_ENDED;
     }
 
     public void resetDeck(int deckCount) {
@@ -132,6 +171,8 @@ public final class GameService {
         phase = GamePhase.WAITING_BET;
         playerHand = new Hand();
         dealerHand = new Hand();
+        lastOutcome = null;
+        status = "New game started.";
     }
 
     public void markGameOver() {
