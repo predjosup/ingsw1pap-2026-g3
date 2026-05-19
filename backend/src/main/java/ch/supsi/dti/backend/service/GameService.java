@@ -5,251 +5,373 @@ import ch.supsi.dti.backend.model.Deck;
 import ch.supsi.dti.backend.model.GamePhase;
 import ch.supsi.dti.backend.model.Hand;
 import ch.supsi.dti.backend.model.RoundOutcome;
+import ch.supsi.dti.backend.model.RoundRecord;
+import ch.supsi.dti.backend.model.SavedGame;
+
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public final class GameService {
 
-    private static final int INITIAL_BALANCE = 100;
-    private static final int MIN_BET = 10;
-    private static final double BLACKJACK_PAYOUT = 1.5;
+    private final GamePersistenceService persistenceService;
+    private SavedGame state;
 
-    private String playerName = "";
-    private int balance = INITIAL_BALANCE;
-    private int currentBet;
-    private GamePhase phase = GamePhase.WAITING_BET;
-    private Deck deck = new Deck(1);
-    private Hand playerHand = new Hand();
-    private Hand dealerHand = new Hand();
-    private RoundOutcome lastOutcome;
-    private String status = "Set up a round.";
-
-    public String playerName() {
-        return playerName;
+    public GameService(GamePersistenceService persistenceService) {
+        this.persistenceService = persistenceService;
+        this.state = persistenceService.load().orElseGet(SavedGame::new);
+        normalizeState();
     }
 
-    public void setPlayerName(String playerName) {
-        if (playerName == null || playerName.isBlank()) {
-            return;
-        }
-        this.playerName = playerName.trim();
+    public String playerName() {
+        return state.playerName();
     }
 
     public int balance() {
-        return balance;
+        return state.balance();
     }
 
     public int minBet() {
-        return MIN_BET;
+        return state.minBet();
     }
 
     public int currentBet() {
-        return currentBet;
+        return state.currentBet();
     }
 
     public GamePhase phase() {
-        return phase;
+        return state.phase();
     }
 
-    public RoundOutcome lastOutcome() {
-        return lastOutcome;
+    public String statusKey() {
+        return state.lastStatusKey();
     }
 
-    public String status() {
-        return status;
+    public Integer statusValue() {
+        return state.lastStatusValue();
     }
 
-    public int remainingCards() {
-        return deck.remaining();
-    }
-
-    public Card drawCard() {
-        return deck.draw();
-    }
-
-    public Hand playerHand() {
-        return playerHand;
-    }
-
-    public Hand dealerHand() {
-        return dealerHand;
-    }
-
-    public int playerScore() {
-        return playerHand.score();
-    }
-
-    public int dealerScore() {
-        return dealerHand.score();
-    }
-
-    public void addCardToPlayer(Card card) {
-        playerHand.addCard(card);
-    }
-
-    public void addCardToDealer(Card card) {
-        dealerHand.addCard(card);
-    }
-
-    public boolean canPlay() {
-        return phase == GamePhase.PLAYER_TURN;
+    public boolean isGameOver() {
+        return state.phase() == GamePhase.GAME_OVER;
     }
 
     public boolean canPlaceBet() {
-        return phase != GamePhase.PLAYER_TURN && !isGameOver();
+        return state.phase() != GamePhase.PLAYER_TURN && !isGameOver();
+    }
+
+    public boolean canPlay() {
+        return state.phase() == GamePhase.PLAYER_TURN;
+    }
+
+    public String playerCardsText() {
+        return state.playerHand().cardsText();
+    }
+
+    public int playerScore() {
+        return state.playerHand().score();
+    }
+
+    public String dealerCardsText(boolean hideHoleCard) {
+        List<Card> cards = state.dealerHand().cards();
+        if (cards.isEmpty()) {
+            return "-";
+        }
+        if (!hideHoleCard || cards.size() < 2 || state.phase() != GamePhase.PLAYER_TURN) {
+            return state.dealerHand().cardsText();
+        }
+
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < cards.size(); i++) {
+            if (i > 0) {
+                sb.append(" ");
+            }
+            if (i == 1) {
+                sb.append("??");
+            } else {
+                sb.append(cards.get(i));
+            }
+        }
+        return sb.toString();
+    }
+
+    public String dealerScoreText(boolean hideHoleCard) {
+        if (hideHoleCard && state.phase() == GamePhase.PLAYER_TURN && state.dealerHand().cards().size() >= 2) {
+            return "?";
+        }
+        return Integer.toString(state.dealerHand().score());
+    }
+
+    public boolean hasHistory() {
+        return state.history() != null && !state.history().isEmpty();
+    }
+
+    public List<RoundRecord> historyRecords() {
+        if (!hasHistory()) {
+            return List.of();
+        }
+        return Collections.unmodifiableList(state.history());
+    }
+
+    public RoundRecord latestHistoryRecord() {
+        if (!hasHistory()) {
+            return null;
+        }
+        return state.history().get(state.history().size() - 1);
+    }
+
+    public void setPlayerName(String newName) {
+        if (newName == null || newName.isBlank()) {
+            setStatus("status.invalidName");
+            return;
+        }
+        state.setPlayerName(newName.trim());
+        setStatus("status.profileUpdated");
+        saveQuietly();
     }
 
     public void addBet(int amount) {
         if (!canPlaceBet()) {
-            status = "Bet is not available now.";
+            setStatus("status.betUnavailable");
             return;
         }
         if (amount <= 0) {
-            status = "Invalid amount.";
+            setStatus("status.invalidAmount");
             return;
         }
-        if (currentBet + amount > balance) {
-            status = "Insufficient balance.";
+        if (state.currentBet() + amount > state.balance()) {
+            setStatus("status.insufficientBalance");
             return;
         }
-        currentBet += amount;
-        status = "Table bet: " + currentBet;
+
+        state.setCurrentBet(state.currentBet() + amount);
+        setStatus("status.tableBet", state.currentBet());
+        saveQuietly();
     }
 
     public void clearBet() {
         if (!canPlaceBet()) {
-            status = "Bet cannot be cleared now.";
+            setStatus("status.cannotClearNow");
             return;
         }
-        currentBet = 0;
-        status = "Bet cleared.";
+        state.setCurrentBet(0);
+        setStatus("status.betCleared");
+        saveQuietly();
     }
 
     public void startRound() {
         if (!canPlaceBet()) {
-            status = "Round already active.";
+            setStatus("status.roundNotEnded");
             return;
         }
-        if (currentBet < MIN_BET) {
-            status = "Minimum bet: " + MIN_BET;
+        if (state.currentBet() < state.minBet()) {
+            setStatus("status.minBet", state.minBet());
             return;
         }
-        if (currentBet > balance) {
-            status = "Insufficient balance.";
+        if (state.currentBet() > state.balance()) {
+            setStatus("status.insufficientBalance");
             return;
         }
 
-        playerHand = new Hand();
-        dealerHand = new Hand();
-        lastOutcome = null;
+        state.setPlayerHand(new Hand());
+        state.setDealerHand(new Hand());
+        state.setLastOutcome(null);
 
-        playerHand.addCard(deck.draw());
-        dealerHand.addCard(deck.draw());
-        playerHand.addCard(deck.draw());
-        dealerHand.addCard(deck.draw());
+        dealInitialCards();
+        state.setPhase(GamePhase.PLAYER_TURN);
 
-        phase = GamePhase.PLAYER_TURN;
-        if (playerHand.isBlackjack() && dealerHand.isBlackjack()) {
-            settleRound(RoundOutcome.PUSH, "Blackjack for both. Push.");
-        } else if (playerHand.isBlackjack()) {
-            settleRound(RoundOutcome.PLAYER_BLACKJACK, "Player has natural blackjack.");
-        } else if (dealerHand.isBlackjack()) {
-            settleRound(RoundOutcome.DEALER_WIN, "Dealer has blackjack.");
-        } else {
-            status = "Player turn.";
+        if (state.playerHand().isBlackjack() && state.dealerHand().isBlackjack()) {
+            settleRound(RoundOutcome.PUSH, "status.bothBlackjack");
+            return;
         }
+        if (state.playerHand().isBlackjack()) {
+            settleRound(RoundOutcome.PLAYER_BLACKJACK, "status.playerBlackjack");
+            return;
+        }
+        if (state.dealerHand().isBlackjack()) {
+            settleRound(RoundOutcome.DEALER_WIN, "status.dealerBlackjack");
+            return;
+        }
+
+        setStatus("status.playerTurn");
+        saveQuietly();
     }
 
     public void hit() {
         if (!canPlay()) {
+            setStatus("status.actionUnavailable");
             return;
         }
-        playerHand.addCard(deck.draw());
-        if (playerHand.isBust()) {
-            settleRound(RoundOutcome.DEALER_WIN, "Player busts.");
-        } else {
-            status = "Card drawn.";
+
+        state.playerHand().addCard(state.deck().draw());
+        if (state.playerHand().isBust()) {
+            settleRound(RoundOutcome.DEALER_WIN, "status.playerBust");
+            return;
         }
+
+        setStatus("status.cardDrawn");
+        saveQuietly();
     }
 
     public void stand() {
         if (!canPlay()) {
-            return;
-        }
-        playDealerTurn();
-        if (dealerHand.isBust()) {
-            settleRound(RoundOutcome.PLAYER_WIN, "Dealer busts.");
+            setStatus("status.actionUnavailable");
             return;
         }
 
-        int player = playerHand.score();
-        int dealer = dealerHand.score();
+        while (state.dealerHand().score() < 17) {
+            state.dealerHand().addCard(state.deck().draw());
+        }
+
+        if (state.dealerHand().isBust()) {
+            settleRound(RoundOutcome.PLAYER_WIN, "status.dealerBust");
+            return;
+        }
+
+        int player = state.playerHand().score();
+        int dealer = state.dealerHand().score();
+
         if (player > dealer) {
-            settleRound(RoundOutcome.PLAYER_WIN, "Player wins.");
+            settleRound(RoundOutcome.PLAYER_WIN, "status.playerWin");
         } else if (player < dealer) {
-            settleRound(RoundOutcome.DEALER_WIN, "Dealer wins.");
+            settleRound(RoundOutcome.DEALER_WIN, "status.dealerWin");
         } else {
-            settleRound(RoundOutcome.PUSH, "Push.");
+            settleRound(RoundOutcome.PUSH, "status.push");
         }
-    }
-
-    public void playDealerTurn() {
-        while (dealerHand.score() < 17) {
-            dealerHand.addCard(deck.draw());
-        }
-    }
-
-    public boolean dealerBust() {
-        return dealerHand.isBust();
-    }
-
-    private void settleRound(RoundOutcome outcome, String status) {
-        if (outcome == RoundOutcome.PLAYER_BLACKJACK) {
-            balance += (int) Math.round(currentBet * BLACKJACK_PAYOUT);
-        } else if (outcome == RoundOutcome.PLAYER_WIN) {
-            balance += currentBet;
-        } else if (outcome == RoundOutcome.DEALER_WIN) {
-            balance -= currentBet;
-        }
-
-        if (balance < 0) {
-            balance = 0;
-        }
-
-        this.lastOutcome = outcome;
-        this.status = status + " Balance: " + balance;
-        currentBet = 0;
-
-        if (balance == 0) {
-            this.phase = GamePhase.GAME_OVER;
-            this.status = "Game over: balance exhausted.";
-        } else if (balance < MIN_BET) {
-            this.phase = GamePhase.GAME_OVER;
-            this.status = "Game over: balance below minimum bet.";
-        } else {
-            this.phase = GamePhase.ROUND_ENDED;
-        }
-    }
-
-    public void resetDeck(int deckCount) {
-        deck = new Deck(deckCount);
-    }
-
-    public boolean isGameOver() {
-        return phase == GamePhase.GAME_OVER;
     }
 
     public void startNewGame() {
-        balance = INITIAL_BALANCE;
-        currentBet = 0;
-        phase = GamePhase.WAITING_BET;
-        playerHand = new Hand();
-        dealerHand = new Hand();
-        lastOutcome = null;
-        status = "New game started.";
+        String playerName = state.playerName();
+        state = new SavedGame();
+        if (playerName != null && !playerName.isBlank()) {
+            state.setPlayerName(playerName);
+        }
+        setStatus("status.newGameStarted");
+        saveQuietly();
     }
 
-    public void markGameOver() {
-        balance = 0;
-        currentBet = 0;
-        phase = GamePhase.GAME_OVER;
+    private void normalizeState() {
+        if (state.playerName() == null) {
+            state.setPlayerName("");
+        }
+        if ("Giocatore".equals(state.playerName()) || "Player".equals(state.playerName())) {
+            state.setPlayerName("");
+        }
+        if (state.minBet() <= 0) {
+            state.setMinBet(10);
+        }
+        if (state.blackjackPayout() <= 0) {
+            state.setBlackjackPayout(1.5);
+        }
+        if (state.deckCount() < 1) {
+            state.setDeckCount(1);
+        }
+        if (state.deck() == null) {
+            state.setDeck(new Deck(state.deckCount()));
+        }
+        if (state.playerHand() == null) {
+            state.setPlayerHand(new Hand());
+        }
+        if (state.dealerHand() == null) {
+            state.setDealerHand(new Hand());
+        }
+        if (state.history() == null) {
+            state.setHistory(new ArrayList<>());
+        }
+        if (state.phase() == null) {
+            state.setPhase(GamePhase.WAITING_BET);
+        }
+        if (state.currentBet() < 0) {
+            state.setCurrentBet(0);
+        }
+        if (state.lastStatusKey() == null || state.lastStatusKey().isBlank()) {
+            setStatus("status.promptBet");
+        }
+        if (state.balance() <= 0) {
+            state.setBalance(0);
+            state.setPhase(GamePhase.GAME_OVER);
+            setStatus("status.gameOverEmpty");
+        } else if (state.balance() < state.minBet()) {
+            state.setPhase(GamePhase.GAME_OVER);
+            setStatus("status.gameOverMinBet");
+        }
+    }
+
+    private void dealInitialCards() {
+        state.playerHand().addCard(state.deck().draw());
+        state.dealerHand().addCard(state.deck().draw());
+        state.playerHand().addCard(state.deck().draw());
+        state.dealerHand().addCard(state.deck().draw());
+    }
+
+    private void settleRound(RoundOutcome outcome, String messageKey) {
+        int bet = state.currentBet();
+        int newBalance = state.balance();
+
+        if (outcome == RoundOutcome.PLAYER_BLACKJACK) {
+            int winAmount = (int) Math.round(bet * state.blackjackPayout());
+            newBalance += winAmount;
+        } else if (outcome == RoundOutcome.PLAYER_WIN) {
+            newBalance += bet;
+        } else if (outcome == RoundOutcome.DEALER_WIN) {
+            newBalance -= bet;
+        }
+
+        if (newBalance < 0) {
+            newBalance = 0;
+        }
+
+        state.setBalance(newBalance);
+        state.setLastOutcome(outcome);
+        state.history().add(new RoundRecord(
+                LocalDateTime.now(),
+                bet,
+                outcome,
+                state.playerHand().score(),
+                state.dealerHand().score(),
+                newBalance
+        ));
+
+        state.setCurrentBet(0);
+        if (newBalance == 0) {
+            state.setPhase(GamePhase.GAME_OVER);
+            setStatus("status.gameOverEmpty");
+        } else if (newBalance < state.minBet()) {
+            state.setPhase(GamePhase.GAME_OVER);
+            setStatus("status.gameOverMinBet");
+        } else {
+            state.setPhase(GamePhase.ROUND_ENDED);
+            setStatus(messageKey, newBalance);
+        }
+
+        saveQuietly();
+    }
+
+    private void saveQuietly() {
+        try {
+            persistenceService.save(state);
+        } catch (IOException ignored) {
+        }
+    }
+
+    public List<Card> playerCards() {
+        return Collections.unmodifiableList(state.playerHand().cards());
+    }
+
+    public List<Card> dealerCards() {
+        return Collections.unmodifiableList(state.dealerHand().cards());
+    }
+
+    private void setStatus(String key) {
+        state.setLastResultMessage(null);
+        state.setLastStatusKey(key);
+        state.setLastStatusValue(null);
+    }
+
+    private void setStatus(String key, int value) {
+        state.setLastResultMessage(null);
+        state.setLastStatusKey(key);
+        state.setLastStatusValue(value);
     }
 }
