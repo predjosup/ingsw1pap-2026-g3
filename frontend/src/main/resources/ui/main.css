@@ -15,6 +15,25 @@
     -fx-text-fill: #233244;
 }
 
+.window-control {
+    -fx-padding: 4 8;
+    -fx-background-color: #f4f7fb;
+    -fx-border-color: #ced8e3;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+    -fx-text-fill: #31475f;
+}
+
+.window-control.close {
+    -fx-background-color: #ffe9e9;
+    -fx-border-color: #f0b5b5;
+    -fx-text-fill: #9f2727;
+}
+
+.page {
+    -fx-background-color: transparent;
+}
+
 .license-card {
     -fx-background-color: rgba(255, 255, 255, 0.94);
     -fx-background-radius: 10;
@@ -29,17 +48,15 @@
     -fx-text-fill: #22384e;
 }
 
-.license-help,
-.stat-label {
+.license-help {
     -fx-text-fill: #4d667d;
 }
 
-.status-label {
-    -fx-background-color: rgba(255, 255, 255, 0.9);
-    -fx-border-color: #d8e0ea;
-    -fx-border-radius: 8;
-    -fx-background-radius: 8;
-    -fx-padding: 10;
+.license-input {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #cad8e8;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
 }
 
 .license-status-info {
@@ -54,6 +71,156 @@
     -fx-text-fill: #23653a;
 }
 
+.stats-row {
+    -fx-background-color: rgba(255, 255, 255, 0.9);
+    -fx-background-radius: 8;
+    -fx-padding: 10;
+    -fx-border-color: #d8e0ea;
+    -fx-border-radius: 8;
+}
+
+.stat-label {
+    -fx-text-fill: #587085;
+    -fx-font-size: 12px;
+}
+
+.stat-value {
+    -fx-font-weight: 700;
+    -fx-text-fill: #22384e;
+    -fx-font-size: 13px;
+}
+
+.play-field {
+    -fx-background-image: url("assets/blackjack-table-real.jpg");
+    -fx-background-size: cover;
+    -fx-background-position: center;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-border-color: #c8d3df;
+    -fx-border-width: 1;
+    -fx-padding: 18;
+}
+
+.section-title {
+    -fx-font-size: 18px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #f6f8fb;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.55), 6, 0.15, 0, 1);
+}
+
+.cards-scroll {
+    -fx-background-color: rgba(0, 0, 0, 0.28);
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-border-color: rgba(255, 255, 255, 0.25);
+    -fx-padding: 6;
+    -fx-max-width: 840;
+}
+
+.cards-scroll > .viewport {
+    -fx-background-color: transparent;
+}
+
+.cards-scroll .scroll-bar:horizontal {
+    -fx-pref-height: 10;
+}
+
+.playing-card-tile,
+.hidden-card-tile,
+.empty-card-tile {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #d0dae6;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 6;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.18), 6, 0.15, 0, 2);
+}
+
+.hidden-card-tile {
+    -fx-background-color: linear-gradient(to bottom, #244b7b, #1d3657);
+    -fx-border-color: #8fb0d6;
+}
+
+.empty-card-tile {
+    -fx-background-color: rgba(255, 255, 255, 0.3);
+    -fx-border-color: rgba(255, 255, 255, 0.35);
+}
+
+.card-corner-label {
+    -fx-font-weight: 700;
+    -fx-font-size: 14px;
+    -fx-padding: 2 4 2 4;
+}
+
+.card-center-label {
+    -fx-font-size: 30px;
+    -fx-font-weight: 700;
+}
+
+.card-text-red {
+    -fx-text-fill: #b42318;
+}
+
+.card-text-black {
+    -fx-text-fill: #182531;
+}
+
+.hidden-card-label {
+    -fx-text-fill: #f4f8fc;
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+}
+
+.empty-card-label {
+    -fx-text-fill: rgba(255, 255, 255, 0.85);
+    -fx-font-size: 18px;
+    -fx-font-weight: 700;
+}
+
+.score-label {
+    -fx-text-fill: #ecf1f6;
+    -fx-font-weight: 600;
+}
+
+.score-value {
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 15px;
+    -fx-font-weight: 700;
+}
+
+.score-plate {
+    -fx-background-color: rgba(16, 28, 40, 0.52);
+    -fx-background-radius: 16;
+    -fx-border-color: rgba(255, 255, 255, 0.2);
+    -fx-border-radius: 16;
+    -fx-padding: 6 12 6 12;
+}
+
+.row-title {
+    -fx-font-weight: 700;
+    -fx-text-fill: #314a61;
+}
+
+.status-label {
+    -fx-background-color: rgba(255, 255, 255, 0.9);
+    -fx-border-color: #d8e0ea;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 10;
+    -fx-text-fill: #1c3147;
+}
+
+.history-preview-label {
+    -fx-background-color: rgba(255, 255, 255, 0.82);
+    -fx-border-color: #d8e0ea;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 10;
+    -fx-text-fill: #405668;
+    -fx-font-size: 12px;
+}
+
 .button {
     -fx-background-color: #e9f1fb;
     -fx-text-fill: #1f3a56;
@@ -63,3 +230,10 @@
     -fx-border-color: #cad8e8;
 }
 
+.button:hover {
+    -fx-background-color: #d9e9fb;
+}
+
+.button:disabled {
+    -fx-opacity: 0.55;
+}

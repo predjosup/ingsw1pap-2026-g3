@@ -8,4 +8,3 @@ public enum GamePhase implements Serializable {
     ROUND_ENDED,
     GAME_OVER
 }
-
