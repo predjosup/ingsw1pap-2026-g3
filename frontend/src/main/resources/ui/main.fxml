@@ -1,20 +1,158 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Priority?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
 
-<VBox spacing="10" xmlns="http://javafx.com/javafx"
-      xmlns:fx="http://javafx.com/fxml"
-      fx:controller="ch.supsi.dti.frontend.Controller"
-      style="-fx-padding: 14;">
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="ch.supsi.dti.frontend.Controller"
+            stylesheets="@main.css"
+            prefWidth="1280"
+            prefHeight="720"
+            styleClass="app-root">
 
-    <Label text="Inserisci del testo..." style="-fx-font-size: 18; -fx-font-weight: bold;"/>
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="8" styleClass="title-bar">
+            <padding>
+                <Insets top="8" right="12" bottom="8" left="12"/>
+            </padding>
+            <Label text="%app.title" styleClass="title-text"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button fx:id="italianButton" text="%language.it" onAction="#onItalian"/>
+            <Button fx:id="englishButton" text="%language.en" onAction="#onEnglish"/>
+        </HBox>
+    </top>
 
-    <TextArea fx:id="textArea" prefRowCount="12"/>
+    <center>
+        <TabPane tabClosingPolicy="UNAVAILABLE" styleClass="main-tabs">
+            <tabs>
+                <Tab text="%tab.game">
+                    <content>
+                        <VBox spacing="12" styleClass="page">
+                            <padding>
+                                <Insets top="14" right="14" bottom="14" left="14"/>
+                            </padding>
 
-    <HBox spacing="10">
-        <Button text="Salva" onAction="#onSaveClicked"/>
-        <Label fx:id="statusLabel"/>
-    </HBox>
+                            <HBox alignment="CENTER_LEFT" spacing="14" styleClass="stats-row">
+                                <Label text="%label.profile" styleClass="stat-label"/>
+                                <Label fx:id="playerNameLabel" styleClass="stat-value"/>
+                                <Label text="%label.balance" styleClass="stat-label"/>
+                                <Label fx:id="balanceLabel" styleClass="stat-value"/>
+                                <Label text="%label.minBet" styleClass="stat-label"/>
+                                <Label fx:id="minBetLabel" styleClass="stat-value"/>
+                                <Label text="%label.tableBet" styleClass="stat-label"/>
+                                <Label fx:id="tableBetLabel" styleClass="stat-value"/>
+                            </HBox>
 
-</VBox>
+                            <StackPane styleClass="play-field" VBox.vgrow="ALWAYS">
+                                <VBox alignment="CENTER" spacing="16" maxWidth="900" fillWidth="true">
+                                    <VBox alignment="CENTER" spacing="8">
+                                        <Label text="%label.dealer" styleClass="section-title"/>
+                                        <ScrollPane fitToWidth="true" fitToHeight="true"
+                                                    hbarPolicy="AS_NEEDED"
+                                                    vbarPolicy="NEVER"
+                                                    pannable="true"
+                                                    styleClass="cards-scroll"
+                                                    prefViewportHeight="120">
+                                            <content>
+                                                <HBox fx:id="dealerCardsBox" alignment="CENTER" spacing="8"/>
+                                            </content>
+                                        </ScrollPane>
+                                        <HBox alignment="CENTER" spacing="6" styleClass="score-plate">
+                                            <Label text="%label.score" styleClass="score-label"/>
+                                            <Label fx:id="dealerScoreLabel" styleClass="score-value"/>
+                                        </HBox>
+                                    </VBox>
+
+                                    <VBox alignment="CENTER" spacing="8">
+                                        <Label text="%label.player" styleClass="section-title"/>
+                                        <ScrollPane fitToWidth="true" fitToHeight="true"
+                                                    hbarPolicy="AS_NEEDED"
+                                                    vbarPolicy="NEVER"
+                                                    pannable="true"
+                                                    styleClass="cards-scroll"
+                                                    prefViewportHeight="120">
+                                            <content>
+                                                <HBox fx:id="playerCardsBox" alignment="CENTER" spacing="8"/>
+                                            </content>
+                                        </ScrollPane>
+                                        <HBox alignment="CENTER" spacing="6" styleClass="score-plate">
+                                            <Label text="%label.score" styleClass="score-label"/>
+                                            <Label fx:id="playerScoreLabel" styleClass="score-value"/>
+                                        </HBox>
+                                    </VBox>
+                                </VBox>
+                            </StackPane>
+
+                            <HBox alignment="CENTER_LEFT" spacing="8">
+                                <Label text="%label.bet" styleClass="row-title"/>
+                                <Button fx:id="bet10Button" text="+10" onAction="#onBet10"/>
+                                <Button fx:id="bet25Button" text="+25" onAction="#onBet25"/>
+                                <Button fx:id="bet50Button" text="+50" onAction="#onBet50"/>
+                                <Button fx:id="clearBetButton" text="%button.clear" onAction="#onClearBet"/>
+                                <Button fx:id="confirmBetButton" text="%button.newHand" onAction="#onConfirmBet"/>
+                                <Region HBox.hgrow="ALWAYS"/>
+                                <Button fx:id="newGameButton" text="%button.newGame" onAction="#onNewGame"/>
+                            </HBox>
+
+                            <HBox alignment="CENTER_LEFT" spacing="8">
+                                <Label text="%label.actions" styleClass="row-title"/>
+                                <Button fx:id="hitButton" text="%button.hit" onAction="#onHit"/>
+                                <Button fx:id="standButton" text="%button.stand" onAction="#onStand"/>
+                            </HBox>
+
+                            <Label fx:id="statusLabel" wrapText="true" styleClass="status-label"/>
+                            <Label fx:id="lastRoundLabel" wrapText="true" styleClass="history-preview-label"/>
+                        </VBox>
+                    </content>
+                </Tab>
+
+                <Tab text="%tab.profile">
+                    <content>
+                        <VBox spacing="16" styleClass="page">
+                            <padding>
+                                <Insets top="16" right="16" bottom="16" left="16"/>
+                            </padding>
+
+                            <Label text="%section.playerProfile" styleClass="section-title"/>
+
+                            <GridPane hgap="10" vgap="10">
+                                <Label text="%label.name" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                                <TextField fx:id="profileNameField" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+                                <Button text="%button.updateProfile" onAction="#onUpdateProfile" GridPane.rowIndex="0" GridPane.columnIndex="2"/>
+
+                                <Label text="%label.currentBalance" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                                <Label fx:id="profileBalanceLabel" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+                            </GridPane>
+                        </VBox>
+                    </content>
+                </Tab>
+
+                <Tab text="%tab.history">
+                    <content>
+                        <VBox spacing="12" styleClass="page">
+                            <padding>
+                                <Insets top="16" right="16" bottom="16" left="16"/>
+                            </padding>
+                            <Label text="%section.latestHands" styleClass="section-title"/>
+                            <ListView fx:id="historyList" VBox.vgrow="ALWAYS"/>
+                        </VBox>
+                    </content>
+                </Tab>
+            </tabs>
+        </TabPane>
+    </center>
+</BorderPane>
