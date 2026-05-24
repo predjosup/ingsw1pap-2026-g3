@@ -1,174 +1,126 @@
-# Blackjack – Boilerplate Project
-**Ingegneria e Sviluppo Software 1**  
-Java 21 · Maven Multi-Module · JavaFX  
+# Blackjack JavaFX
 
----
+Autori: Somazzi Davide, Djordjevic Predrag
+
+Ingegneria e Sviluppo Software 1  
+Java · Maven Multi-Module · JavaFX · Validatore licenza C
 
 ## Overview
 
-This project is a minimal boilerplate for a multi-module Java application using:
+Questo progetto implementa un gioco Blackjack desktop in JavaFX.
 
-- Java 21  
-- Maven  
-- JavaFX  
-- Frontend / Backend separation
-- Fat JAR packaging  
+Funzionalita principali:
 
-The current implementation demonstrates:
-
-- A simple JavaFX UI  
-- A TextArea  
-- A button that saves the content of the TextArea to a file  
-- Proper separation between frontend and backend modules  
-
-This boilerplate serves as the starting point for the Blackjack course project.
-
----
+- controllo licenza tramite modulo C
+- puntata e saldo giocatore
+- distribuzione carte
+- azioni `Hit` e `Stand`
+- turno automatico del dealer
+- calcolo vincitore
+- salvataggio stato e storico partite
 
 ## Project Structure
 
-```
-blackjack/
+```text
+ingsw1pap-2026-g3/
 │
-├── pom.xml               (parent / aggregator)
-├── backend/              (business logic & services)
-└── frontend/             (JavaFX UI)
+├── pom.xml               parent Maven
+├── backend/              logica di gioco e servizi
+├── frontend/             interfaccia JavaFX
+└── license-validator/    validatore licenza in C
 ```
-
-### Backend Module
-
-Contains:
-- Application services
-- File persistence service (`FileService`)
-- Future Blackjack domain logic
-
-The backend does not contain UI code.
-
-### Frontend Module
-
-Contains:
-- JavaFX UI
-- FXML layout
-- Controllers
-
-The frontend depends on the backend as a Maven dependency.
-
----
 
 ## Requirements
 
-- Java 21  
-- Maven 3.9+  
+- Java
+- Maven
+- IntelliJ IDEA
+- MSYS2 UCRT64 con `gcc` e OpenSSL
 
-Verify installation:
+Verifica:
 
 ```bash
 java -version
 mvn -version
 ```
 
----
+## Preparare il modulo C della licenza
 
-## Build the Project
+Aprire **MSYS2 UCRT64**:
 
-From the root directory:
+```bash
+cd /c/Users/dsoma/IdeaProjects/ingsw1pap-2026-g3/license-validator
+mkdir -p bin
+gcc license_validator.c -O2 -o bin/license_validator.exe -lcrypto
+cp /ucrt64/bin/libcrypto-3-x64.dll bin/
+```
+
+La cartella `license-validator/bin` deve contenere:
+
+```text
+license_validator.exe
+libcrypto-3-x64.dll
+```
+
+Test da MSYS2:
+
+```bash
+./bin/license_validator.exe BLACKJACK-2026-VALID
+```
+
+Test da PowerShell:
+
+```powershell
+C:\Users\dsoma\IdeaProjects\ingsw1pap-2026-g3\license-validator\bin\license_validator.exe BLACKJACK-2026-VALID
+```
+
+Output atteso:
+
+```text
+LICENZA_VALIDA
+```
+
+## Build
+
+Dalla root del progetto:
 
 ```bash
 mvn clean package
 ```
 
-This will:
+Il fat JAR viene creato in:
 
-- Build the backend  
-- Build the frontend  
-- Produce a fat JAR inside:
-
-```
+```text
 frontend/target/frontend-1.0.0-SNAPSHOT-all.jar
 ```
 
----
+## Run da IntelliJ IDEA
 
-## Run the Application
+Aprire in IntelliJ la root:
 
-### Option 1 – Run the Fat JAR
+```text
+C:\Users\dsoma\IdeaProjects\ingsw1pap-2026-g3
+```
+
+Poi eseguire dal terminale di IntelliJ:
 
 ```bash
-java -jar frontend/target/frontend-1.0.0-SNAPSHOT-all.jar
+mvn -f frontend/pom.xml javafx:run
 ```
 
-### Option 2 – Run in Development Mode (Recommended)
+Chiave licenza:
 
-```bash
-mvn -pl frontend javafx:run
+```text
+BLACKJACK-2026-VALID
 ```
 
-This ensures JavaFX modules are correctly loaded.
+Se appare `Errore verifica licenza`, controllare che questi file siano entrambi presenti:
 
----
-
-## Running from IntelliJ IDEA
-
-1. Open the root folder (`blackjack/`)
-2. Ensure Project SDK = Java 21
-3. Reload the Maven project
-
-To run the application:
-
-- Open the Maven tool window  
-- Execute:
-
+```text
+license-validator/bin/license_validator.exe
+license-validator/bin/libcrypto-3-x64.dll
 ```
-frontend → Plugins → javafx → javafx:run
-```
-
-Avoid running `MainApp` directly unless JavaFX is properly configured.
-
----
-
-## File Saving Example
-
-The boilerplate includes a simple persistence example.
-
-Backend service:
-
-```java
-public void saveUtf8(Path file, String content)
-```
-
-Frontend usage:
-
-```java
-fileService.saveUtf8(
-    Path.of("saved", "textarea.txt"),
-    textArea.getText()
-);
-```
-
-By default, the file will be created in:
-
-```
-saved/textarea.txt
-```
-
-(relative to the application working directory)
-
----
 
 ## Educational Purpose
 
-This boilerplate is intentionally minimal and designed to:
-
-- Demonstrate proper separation of frontend and backend
-- Provide a working JavaFX + Maven structure
-- Offer a starting point for the Blackjack project
-- Serve as a base for adding:
-  - Game logic
-  - Serialization
-  - License validation in C
-  - Internationalization
-  - Unit testing
-
----
-
-Author: Edoardo Terzi
+Il progetto mostra una separazione tra `frontend` JavaFX e `backend`, integrazione con un modulo C esterno, persistenza dello stato e gestione completa di un turno Blackjack.
